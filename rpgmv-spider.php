@@ -20,6 +20,21 @@ if (substr($index, -1, 1) == '/') {
 
 $urls = [$index];
 
+// Add core asset files
+$urls[] = $base . 'img/system/Balloon.png';
+$urls[] = $base . 'img/system/ButtonSet.png';
+$urls[] = $base . 'img/system/Damage.png';
+$urls[] = $base . 'img/system/GameOver.png';
+$urls[] = $base . 'img/system/IconSet.png';
+$urls[] = $base . 'img/system/Loading.png';
+$urls[] = $base . 'img/system/Shadow1.png';
+$urls[] = $base . 'img/system/Shadow2.png';
+$urls[] = $base . 'img/system/States.png';
+$urls[] = $base . 'img/system/Weapons1.png';
+$urls[] = $base . 'img/system/Weapons2.png';
+$urls[] = $base . 'img/system/Weapons3.png';
+$urls[] = $base . 'img/system/Window.png';
+
 // Add core data files
 $dataFiles = [
 	'Actors', 'Classes', 'Skills', 'Items', 'Weapons', 'Armors', 'Enemies',
@@ -107,8 +122,8 @@ if (!empty($system->title2Name)) {
 }
 
 // Add actors
-$actorList = json_decode(file_get_contents($root . 'data/Actors.json'));
-foreach($actorList as $a) {
+$actors = json_decode(file_get_contents($root . 'data/Actors.json'));
+foreach($actors as $a) {
 	if (!$a) {
 		continue;
 	}
@@ -120,13 +135,97 @@ foreach($actorList as $a) {
 	}
 	if ($a->battlerName) {
 		$urls[] = $root . 'img/sv_actors/' . $a->battlerName . '.png';
-		$urls[] = $root . 'img/sv_enemies/' . $a->battlerName . '.png';
+	}
+}
+
+// Add animations
+$animations = json_decode(file_get_contents($root . 'data/Animations.json'));
+foreach($animations as $a) {
+	if (!$a) {
+		continue;
+	}
+	$urls[] = $root . 'img/animations/' . $a->animation1Name . '.png';
+	if ($a->animation2Name) {
+		$urls[] = $root . 'img/animations/' . $a->animation2Name . '.png';
+	}
+	foreach ($a->timings as $t) {
+		if (!empty($t->se->name)) {
+			$urls[] = $root . 'audio/se/' . $t->se->name . '.m4a';
+			$urls[] = $root . 'audio/se/' . $t->se->name . '.ogg';
+		}
+	}
+}
+
+// Add common events
+$commonevents = json_decode(file_get_contents($root . 'data/CommonEvents.json'));
+foreach($commonevents as $e) {
+	if (!$e) {
+		continue;
+	}
+	foreach($e->pages as $page) {
+		if ($page->image && $page->image->characterName) {
+			$urls[] = $root . 'img/characters/' . $page->image->characterName . '.png';
+		}
+		foreach($page->list as $l) {
+			if ($l->code == 101 && $l->parameters[0]) { // Text + Face
+				$urls[] = $root . 'img/faces/' . $l->parameters[0] . '.png';
+			}
+			if ($l->code == 231) { // Show Picture
+				$urls[] = $root . 'img/pictures/' . $l->parameters[1] . '.png';
+			}
+			if ($l->code == 241) { // Play BGM
+				$urls[] = $root . 'audio/bgm/' . $l->parameters[0]->name . '.m4a';
+				$urls[] = $root . 'audio/bgm/' . $l->parameters[0]->name . '.ogg';
+			}
+			if ($l->code == 245) { // Play BGS
+				$urls[] = $root . 'audio/bgs/' . $l->parameters[0]->name . '.m4a';
+				$urls[] = $root . 'audio/bgs/' . $l->parameters[0]->name . '.ogg';
+			}
+			if ($l->code == 249) { // Play ME
+				$urls[] = $root . 'audio/me/' . $l->parameters[0]->name . '.m4a';
+				$urls[] = $root . 'audio/me/' . $l->parameters[0]->name . '.ogg';
+			}
+			if ($l->code == 250) { // Play SE
+				$urls[] = $root . 'audio/se/' . $l->parameters[0]->name . '.m4a';
+				$urls[] = $root . 'audio/se/' . $l->parameters[0]->name . '.ogg';
+			}
+			if ($l->code == 261) { // Play Movie
+				$urls[] = $root . 'movies/' . $l->parameters[0] . '.mp4';
+				$urls[] = $root . 'movies/' . $l->parameters[0] . '.webm';
+			}
+		}
+	}
+}
+
+// Add enemies
+$enemies = json_decode(file_get_contents($root . 'data/Actors.json'));
+foreach($enemies as $e) {
+	if (!$e) {
+		continue;
+	}
+	if ($e->battlerName) {
+		$urls[] = $root . 'img/enemies/' . $e->battlerName . '.png';
+		$urls[] = $root . 'img/sv_enemies/' . $e->battlerName . '.png';
+	}
+}
+
+// Add tilesets
+$tilesets = json_decode(file_get_contents($root . 'data/Tilesets.json'));
+foreach($tilesets as $t) {
+	if (!$t) {
+		continue;
+	}
+	foreach($t->tilesetNames as $n) {
+		if ($n) {
+			$urls[] = $root . 'img/tilesets/' . $n . '.png';
+			$urls[] = $root . 'img/tilesets/' . $n . '.txt';
+		}
 	}
 }
 
 // Add maps and their assets
-$mapList = json_decode(file_get_contents($root . 'data/MapInfos.json'));
-foreach($mapList as $m) {
+$maps = json_decode(file_get_contents($root . 'data/MapInfos.json'));
+foreach($maps as $m) {
 	if (!$m) {
 		continue;
 	}
@@ -163,6 +262,9 @@ foreach($mapList as $m) {
 				$urls[] = $root . 'img/characters/' . $page->image->characterName . '.png';
 			}
 			foreach($page->list as $l) {
+				if ($l->code == 101 && $l->parameters[0]) { // Text + Face
+					$urls[] = $root . 'img/faces/' . $l->parameters[0] . '.png';
+				}
 				if ($l->code == 231) { // Show Picture
 					$urls[] = $root . 'img/pictures/' . $l->parameters[1] . '.png';
 				}
