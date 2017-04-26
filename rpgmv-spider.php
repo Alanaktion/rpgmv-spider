@@ -10,30 +10,38 @@ if (!$argv[1]) {
 	exit ("Usage: rpgmv-spider <url>");
 }
 
+// Determine root directory
+// @todo: Detect a missing trailing slash on a directory path
 $index = $argv[1];
+$urls = [];
 if (substr($index, -1, 1) == '/') {
 	$root = $index;
-	$index .= 'index.html';
+	$urls[] = 'index.html';
 } else {
 	$root = dirname($index) . '/';
+	$urls[] = basename($index);
 }
 
-$urls = [$index];
+// Verify project exists at path
+$systemRaw = @file_get_contents($root . 'data/System.json');
+if ($systemRaw === false) {
+	exit("No project data found.\n");
+}
 
 // Add core asset files
-$urls[] = $base . 'img/system/Balloon.png';
-$urls[] = $base . 'img/system/ButtonSet.png';
-$urls[] = $base . 'img/system/Damage.png';
-$urls[] = $base . 'img/system/GameOver.png';
-$urls[] = $base . 'img/system/IconSet.png';
-$urls[] = $base . 'img/system/Loading.png';
-$urls[] = $base . 'img/system/Shadow1.png';
-$urls[] = $base . 'img/system/Shadow2.png';
-$urls[] = $base . 'img/system/States.png';
-$urls[] = $base . 'img/system/Weapons1.png';
-$urls[] = $base . 'img/system/Weapons2.png';
-$urls[] = $base . 'img/system/Weapons3.png';
-$urls[] = $base . 'img/system/Window.png';
+$urls[] = 'img/system/Balloon.png';
+$urls[] = 'img/system/ButtonSet.png';
+$urls[] = 'img/system/Damage.png';
+$urls[] = 'img/system/GameOver.png';
+$urls[] = 'img/system/IconSet.png';
+$urls[] = 'img/system/Loading.png';
+$urls[] = 'img/system/Shadow1.png';
+$urls[] = 'img/system/Shadow2.png';
+$urls[] = 'img/system/States.png';
+$urls[] = 'img/system/Weapons1.png';
+$urls[] = 'img/system/Weapons2.png';
+$urls[] = 'img/system/Weapons3.png';
+$urls[] = 'img/system/Window.png';
 
 // Add core data files
 $dataFiles = [
@@ -42,7 +50,7 @@ $dataFiles = [
 	'MapInfos'
 ];
 foreach($dataFiles as $d) {
-	$urls[] = $root . 'data/' . $d . '.json';
+	$urls[] = 'data/' . $d . '.json';
 }
 
 // Add plugins
@@ -51,74 +59,79 @@ $pluginList = file_get_contents($root . 'js/plugins.js');
 $pluginList = json_decode(rtrim(substr($pluginList, strpos($pluginList, '[')), "\n;"));
 foreach($pluginList as $p) {
 	$plugins[] = $p->name;
-	$urls[] = $root . 'js/plugins/' . $p->name . '.js';
+	$urls[] = 'js/plugins/' . $p->name . '.js';
 }
 
+// Check system settings
+$system = json_decode($systemRaw);
+$imgExt = empty($system->hasEncryptedImages) ? '.png' : '.rpgmvp';
+$oggExt = empty($system->hasEncryptedAudio) ? '.m4a' : '.rpgmvm';
+$m4aExt = empty($system->hasEncryptedAudio) ? '.ogg' : '.rpgmvo';
+
 // Add system assets
-$system = json_decode(file_get_contents($root . 'data/System.json'));
 if (!empty($system->airship->bgm->name)) {
-	$urls[] = $root . 'audio/bgm/' . $system->airship->bgm->name . '.m4a';
-	$urls[] = $root . 'audio/bgm/' . $system->airship->bgm->name . '.ogg';
+	$urls[] = 'audio/bgm/' . $system->airship->bgm->name . $m4aExt;
+	$urls[] = 'audio/bgm/' . $system->airship->bgm->name . $oggExt;
 }
 if (!empty($system->airship->characterName)) {
-	$urls[] = $root . 'img/characters/' . $system->airship->characterName . '.png';
+	$urls[] = 'img/characters/' . $system->airship->characterName . $imgExt;
 }
 if (!empty($system->battleBgm->name)) {
-	$urls[] = $root . 'audio/bgm/' . $system->battleBgm->name . '.m4a';
-	$urls[] = $root . 'audio/bgm/' . $system->battleBgm->name . '.ogg';
+	$urls[] = 'audio/bgm/' . $system->battleBgm->name . $m4aExt;
+	$urls[] = 'audio/bgm/' . $system->battleBgm->name . $oggExt;
 }
 if (!empty($system->battleback1Name)) {
-	$urls[] = $root . 'img/battlebacks1/' . $system->battleback1Name . '.png';
+	$urls[] = 'img/battlebacks1/' . $system->battleback1Name . $imgExt;
 }
 if (!empty($system->battleback2Name)) {
-	$urls[] = $root . 'img/battlebacks2/' . $system->battleback2Name . '.png';
+	$urls[] = 'img/battlebacks2/' . $system->battleback2Name . $imgExt;
 }
 if (!empty($system->battlerName)) {
-	$urls[] = $root . 'img/enemies/' . $system->battlerName . '.png';
-	$urls[] = $root . 'img/sv_enemies/' . $system->battlerName . '.png';
+	$urls[] = 'img/enemies/' . $system->battlerName . $imgExt;
+	$urls[] = 'img/sv_enemies/' . $system->battlerName . $imgExt;
 }
 if (!empty($system->boat->bgm->name)) {
-	$urls[] = $root . 'audio/bgm/' . $system->boat->bgm->name . '.m4a';
-	$urls[] = $root . 'audio/bgm/' . $system->boat->bgm->name . '.ogg';
+	$urls[] = 'audio/bgm/' . $system->boat->bgm->name . $m4aExt;
+	$urls[] = 'audio/bgm/' . $system->boat->bgm->name . $oggExt;
 }
 if (!empty($system->boat->characterName)) {
-	$urls[] = $root . 'img/characters/' . $system->boat->characterName . '.png';
+	$urls[] = 'img/characters/' . $system->boat->characterName . $imgExt;
 }
 if (!empty($system->defeatMe->name)) {
-	$urls[] = $root . 'audio/me/' . $system->defeatMe->name . '.m4a';
-	$urls[] = $root . 'audio/me/' . $system->defeatMe->name . '.ogg';
+	$urls[] = 'audio/me/' . $system->defeatMe->name . $m4aExt;
+	$urls[] = 'audio/me/' . $system->defeatMe->name . $oggExt;
 }
 if (!empty($system->gameoverMe->name)) {
-	$urls[] = $root . 'audio/me/' . $system->gameoverMe->name . '.m4a';
-	$urls[] = $root . 'audio/me/' . $system->gameoverMe->name . '.ogg';
+	$urls[] = 'audio/me/' . $system->gameoverMe->name . $m4aExt;
+	$urls[] = 'audio/me/' . $system->gameoverMe->name . $oggExt;
 }
 if (!empty($system->ship->bgm->name)) {
-	$urls[] = $root . 'audio/bgm/' . $system->ship->bgm->name . '.m4a';
-	$urls[] = $root . 'audio/bgm/' . $system->ship->bgm->name . '.ogg';
+	$urls[] = 'audio/bgm/' . $system->ship->bgm->name . $m4aExt;
+	$urls[] = 'audio/bgm/' . $system->ship->bgm->name . $oggExt;
 }
 if (!empty($system->ship->characterName)) {
-	$urls[] = $root . 'img/characters/' . $system->ship->characterName . '.png';
+	$urls[] = 'img/characters/' . $system->ship->characterName . $imgExt;
 }
 foreach($system->sounds as $s) {
 	if (!$s) {
 		continue;
 	}
-	$urls[] = $root . 'audio/se/' . $s->name . '.m4a';
-	$urls[] = $root . 'audio/se/' . $s->name . '.ogg';
+	$urls[] = 'audio/se/' . $s->name . $m4aExt;
+	$urls[] = 'audio/se/' . $s->name . $oggExt;
 }
 if (!empty($system->titleBgm->name)) {
-	$urls[] = $root . 'audio/bgm/' . $system->titleBgm->name . '.m4a';
-	$urls[] = $root . 'audio/bgm/' . $system->titleBgm->name . '.ogg';
+	$urls[] = 'audio/bgm/' . $system->titleBgm->name . $m4aExt;
+	$urls[] = 'audio/bgm/' . $system->titleBgm->name . $oggExt;
 }
 if (!empty($system->victoryMe->name)) {
-	$urls[] = $root . 'audio/me/' . $system->victoryMe->name . '.m4a';
-	$urls[] = $root . 'audio/me/' . $system->victoryMe->name . '.ogg';
+	$urls[] = 'audio/me/' . $system->victoryMe->name . $m4aExt;
+	$urls[] = 'audio/me/' . $system->victoryMe->name . $oggExt;
 }
 if (!empty($system->title1Name)) {
-	$urls[] = $root . 'img/titles1/' . $system->title1Name . '.png';
+	$urls[] = 'img/titles1/' . $system->title1Name . $imgExt;
 }
 if (!empty($system->title2Name)) {
-	$urls[] = $root . 'img/titles2/' . $system->title2Name . '.png';
+	$urls[] = 'img/titles2/' . $system->title2Name . $imgExt;
 }
 
 // Add actors
@@ -128,13 +141,13 @@ foreach($actors as $a) {
 		continue;
 	}
 	if ($a->characterName) {
-		$urls[] = $root . 'img/characters/' . $a->characterName . '.png';
+		$urls[] = 'img/characters/' . $a->characterName . $imgExt;
 	}
 	if ($a->faceName) {
-		$urls[] = $root . 'img/faces/' . $a->faceName . '.png';
+		$urls[] = 'img/faces/' . $a->faceName . $imgExt;
 	}
 	if ($a->battlerName) {
-		$urls[] = $root . 'img/sv_actors/' . $a->battlerName . '.png';
+		$urls[] = 'img/sv_actors/' . $a->battlerName . $imgExt;
 	}
 }
 
@@ -144,14 +157,14 @@ foreach($animations as $a) {
 	if (!$a) {
 		continue;
 	}
-	$urls[] = $root . 'img/animations/' . $a->animation1Name . '.png';
+	$urls[] = 'img/animations/' . $a->animation1Name . $imgExt;
 	if ($a->animation2Name) {
-		$urls[] = $root . 'img/animations/' . $a->animation2Name . '.png';
+		$urls[] = 'img/animations/' . $a->animation2Name . $imgExt;
 	}
 	foreach ($a->timings as $t) {
 		if (!empty($t->se->name)) {
-			$urls[] = $root . 'audio/se/' . $t->se->name . '.m4a';
-			$urls[] = $root . 'audio/se/' . $t->se->name . '.ogg';
+			$urls[] = 'audio/se/' . $t->se->name . $m4aExt;
+			$urls[] = 'audio/se/' . $t->se->name . $oggExt;
 		}
 	}
 }
@@ -159,39 +172,40 @@ foreach($animations as $a) {
 // Add common events
 $commonevents = json_decode(file_get_contents($root . 'data/CommonEvents.json'));
 foreach($commonevents as $e) {
-	if (!$e) {
+	if (empty($e->pages)) {
 		continue;
 	}
 	foreach($e->pages as $page) {
 		if ($page->image && $page->image->characterName) {
-			$urls[] = $root . 'img/characters/' . $page->image->characterName . '.png';
+			$urls[] = 'img/characters/' . $page->image->characterName . $imgExt;
 		}
 		foreach($page->list as $l) {
 			if ($l->code == 101 && $l->parameters[0]) { // Text + Face
-				$urls[] = $root . 'img/faces/' . $l->parameters[0] . '.png';
+				$urls[] = 'img/faces/' . $l->parameters[0] . $imgExt;
 			}
 			if ($l->code == 231) { // Show Picture
-				$urls[] = $root . 'img/pictures/' . $l->parameters[1] . '.png';
+				$urls[] = 'img/pictures/' . $l->parameters[1] . $imgExt;
 			}
 			if ($l->code == 241) { // Play BGM
-				$urls[] = $root . 'audio/bgm/' . $l->parameters[0]->name . '.m4a';
-				$urls[] = $root . 'audio/bgm/' . $l->parameters[0]->name . '.ogg';
+				$urls[] = 'audio/bgm/' . $l->parameters[0]->name . $m4aExt;
+				$urls[] = 'audio/bgm/' . $l->parameters[0]->name . $oggExt;
 			}
 			if ($l->code == 245) { // Play BGS
-				$urls[] = $root . 'audio/bgs/' . $l->parameters[0]->name . '.m4a';
-				$urls[] = $root . 'audio/bgs/' . $l->parameters[0]->name . '.ogg';
+				$urls[] = 'audio/bgs/' . $l->parameters[0]->name . $m4aExt;
+				$urls[] = 'audio/bgs/' . $l->parameters[0]->name . $oggExt;
 			}
 			if ($l->code == 249) { // Play ME
-				$urls[] = $root . 'audio/me/' . $l->parameters[0]->name . '.m4a';
-				$urls[] = $root . 'audio/me/' . $l->parameters[0]->name . '.ogg';
+				$urls[] = 'audio/me/' . $l->parameters[0]->name . $m4aExt;
+				$urls[] = 'audio/me/' . $l->parameters[0]->name . $oggExt;
 			}
 			if ($l->code == 250) { // Play SE
-				$urls[] = $root . 'audio/se/' . $l->parameters[0]->name . '.m4a';
-				$urls[] = $root . 'audio/se/' . $l->parameters[0]->name . '.ogg';
+				$urls[] = 'audio/se/' . $l->parameters[0]->name . $m4aExt;
+				$urls[] = 'audio/se/' . $l->parameters[0]->name . $oggExt;
 			}
 			if ($l->code == 261) { // Play Movie
-				$urls[] = $root . 'movies/' . $l->parameters[0] . '.mp4';
-				$urls[] = $root . 'movies/' . $l->parameters[0] . '.webm';
+				$urls[] = 'movies/' . $l->parameters[0] . '.m4v';
+				$urls[] = 'movies/' . $l->parameters[0] . '.mp4';
+				$urls[] = 'movies/' . $l->parameters[0] . '.webm';
 			}
 		}
 	}
@@ -204,8 +218,8 @@ foreach($enemies as $e) {
 		continue;
 	}
 	if ($e->battlerName) {
-		$urls[] = $root . 'img/enemies/' . $e->battlerName . '.png';
-		$urls[] = $root . 'img/sv_enemies/' . $e->battlerName . '.png';
+		$urls[] = 'img/enemies/' . $e->battlerName . $imgExt;
+		$urls[] = 'img/sv_enemies/' . $e->battlerName . $imgExt;
 	}
 }
 
@@ -217,8 +231,8 @@ foreach($tilesets as $t) {
 	}
 	foreach($t->tilesetNames as $n) {
 		if ($n) {
-			$urls[] = $root . 'img/tilesets/' . $n . '.png';
-			$urls[] = $root . 'img/tilesets/' . $n . '.txt';
+			$urls[] = 'img/tilesets/' . $n . $imgExt;
+			$urls[] = 'img/tilesets/' . $n . '.txt';
 		}
 	}
 }
@@ -229,27 +243,27 @@ foreach($maps as $m) {
 	if (!$m) {
 		continue;
 	}
-	$url = $root . 'data/Map' . str_pad($m->id, 3, '0', STR_PAD_LEFT) . '.json';
-	$urls[] = $url;
-	$map = json_decode(file_get_contents($url));
+	$path = 'data/Map' . str_pad($m->id, 3, '0', STR_PAD_LEFT) . '.json';
+	$urls[] = $path;
+	$map = json_decode(file_get_contents($root . $path));
 
 	// Add basic images
 	if ($map->battleback1Name) {
-	$urls[] = $root . 'img/battlebacks1/' . $map->battleback1Name . '.png';
+	$urls[] = 'img/battlebacks1/' . $map->battleback1Name . $imgExt;
 	}
 	if ($map->battleback2Name) {
-		$urls[] = $root . 'img/battlebacks2/' . $map->battleback2Name . '.png';
+		$urls[] = 'img/battlebacks2/' . $map->battleback2Name . $imgExt;
 	}
 	if ($map->bgm && $map->bgm->name) {
-		$urls[] = $root . 'audio/bgm/' . $map->bgm->name . '.m4a';
-		$urls[] = $root . 'audio/bgm/' . $map->bgm->name . '.ogg';
+		$urls[] = 'audio/bgm/' . $map->bgm->name . $m4aExt;
+		$urls[] = 'audio/bgm/' . $map->bgm->name . $oggExt;
 	}
 	if ($map->bgs && $map->bgs->name) {
-		$urls[] = $root . 'audio/bgs/' . $map->bgs->name . '.m4a';
-		$urls[] = $root . 'audio/bgs/' . $map->bgs->name . '.ogg';
+		$urls[] = 'audio/bgs/' . $map->bgs->name . $m4aExt;
+		$urls[] = 'audio/bgs/' . $map->bgs->name . $oggExt;
 	}
 	if ($map->parallaxName) {
-		$urls[] = $root . 'img/parallaxes/' . $map->parallaxName . '.png';
+		$urls[] = 'img/parallaxes/' . $map->parallaxName . $imgExt;
 	}
 
 	// Add images from events
@@ -259,34 +273,35 @@ foreach($maps as $m) {
 		}
 		foreach($e->pages as $page) {
 			if ($page->image && $page->image->characterName) {
-				$urls[] = $root . 'img/characters/' . $page->image->characterName . '.png';
+				$urls[] = 'img/characters/' . $page->image->characterName . $imgExt;
 			}
 			foreach($page->list as $l) {
 				if ($l->code == 101 && $l->parameters[0]) { // Text + Face
-					$urls[] = $root . 'img/faces/' . $l->parameters[0] . '.png';
+					$urls[] = 'img/faces/' . $l->parameters[0] . $imgExt;
 				}
 				if ($l->code == 231) { // Show Picture
-					$urls[] = $root . 'img/pictures/' . $l->parameters[1] . '.png';
+					$urls[] = 'img/pictures/' . $l->parameters[1] . $imgExt;
 				}
 				if ($l->code == 241) { // Play BGM
-					$urls[] = $root . 'audio/bgm/' . $l->parameters[0]->name . '.m4a';
-					$urls[] = $root . 'audio/bgm/' . $l->parameters[0]->name . '.ogg';
+					$urls[] = 'audio/bgm/' . $l->parameters[0]->name . $m4aExt;
+					$urls[] = 'audio/bgm/' . $l->parameters[0]->name . $oggExt;
 				}
 				if ($l->code == 245) { // Play BGS
-					$urls[] = $root . 'audio/bgs/' . $l->parameters[0]->name . '.m4a';
-					$urls[] = $root . 'audio/bgs/' . $l->parameters[0]->name . '.ogg';
+					$urls[] = 'audio/bgs/' . $l->parameters[0]->name . $m4aExt;
+					$urls[] = 'audio/bgs/' . $l->parameters[0]->name . $oggExt;
 				}
 				if ($l->code == 249) { // Play ME
-					$urls[] = $root . 'audio/me/' . $l->parameters[0]->name . '.m4a';
-					$urls[] = $root . 'audio/me/' . $l->parameters[0]->name . '.ogg';
+					$urls[] = 'audio/me/' . $l->parameters[0]->name . $m4aExt;
+					$urls[] = 'audio/me/' . $l->parameters[0]->name . $oggExt;
 				}
 				if ($l->code == 250) { // Play SE
-					$urls[] = $root . 'audio/se/' . $l->parameters[0]->name . '.m4a';
-					$urls[] = $root . 'audio/se/' . $l->parameters[0]->name . '.ogg';
+					$urls[] = 'audio/se/' . $l->parameters[0]->name . $m4aExt;
+					$urls[] = 'audio/se/' . $l->parameters[0]->name . $oggExt;
 				}
 				if ($l->code == 261) { // Play Movie
-					$urls[] = $root . 'movies/' . $l->parameters[0] . '.mp4';
-					$urls[] = $root . 'movies/' . $l->parameters[0] . '.webm';
+					$urls[] = 'movies/' . $l->parameters[0] . '.m4v';
+					$urls[] = 'movies/' . $l->parameters[0] . '.mp4';
+					$urls[] = 'movies/' . $l->parameters[0] . '.webm';
 				}
 			}
 		}
@@ -298,5 +313,5 @@ foreach($maps as $m) {
 // Output results
 sort($urls);
 foreach(array_unique($urls) as $u) {
-	echo $u, "\n";
+	echo $root, $u, "\n";
 }
