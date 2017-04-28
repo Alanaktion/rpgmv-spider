@@ -42,6 +42,20 @@ $urls[] = 'img/system/Weapons1.png';
 $urls[] = 'img/system/Weapons2.png';
 $urls[] = 'img/system/Weapons3.png';
 $urls[] = 'img/system/Window.png';
+$urls[] = 'js/main.js';
+$urls[] = 'js/plugins';
+$urls[] = 'js/plugins.js';
+$urls[] = 'js/rpg_core.js';
+$urls[] = 'js/rpg_managers.js';
+$urls[] = 'js/rpg_objects.js';
+$urls[] = 'js/rpg_scenes.js';
+$urls[] = 'js/rpg_sprites.js';
+$urls[] = 'js/rpg_windows.js';
+$urls[] = 'js/libs/fpsmeter.js';
+$urls[] = 'js/libs/lz-string.js';
+$urls[] = 'js/libs/pixi-picture.js';
+$urls[] = 'js/libs/pixi-tilemap.js';
+$urls[] = 'js/libs/pixi.js';
 
 // Add core data files
 $dataFiles = [
